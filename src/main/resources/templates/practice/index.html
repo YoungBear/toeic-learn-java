@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习中心 - 托业学习系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>练习中心</h1>
+        </div>
+
+        <div class="stats-cards" th:if="${stats}">
+            <div class="stat-card primary">
+                <div class="stat-value" th:text="${stats.totalWords}">0</div>
+                <div class="stat-label">总词汇</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-value" th:text="${stats.masteredWords}">0</div>
+                <div class="stat-label">已掌握</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-value" th:text="${stats.dueForReview}">0</div>
+                <div class="stat-label">待复习</div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-value" th:text="${stats.accuracyRate} + '%'">0%</div>
+                <div class="stat-label">正确率</div>
+            </div>
+        </div>
+
+        <div class="practice-config">
+            <h2>开始练习</h2>
+
+            <form th:action="@{/practice/do}" method="get" class="practice-form">
+                <div class="form-group">
+                    <label for="count">题目数量</label>
+                    <select id="count" name="count" class="form-control">
+                        <option value="10">10题 (快速练习)</option>
+                        <option value="20" selected>20题 (标准练习)</option>
+                        <option value="50">50题 (强化练习)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="vocabularyId">选择词汇书 (可选)</label>
+                    <select id="vocabularyId" name="vocabularyId" class="form-control">
+                        <option value="">全部词汇</option>
+                        <option th:each="vocab : ${vocabularies}"
+                                th:value="${vocab.id}"
+                                th:text="${vocab.name}">词汇书</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="type">练习类型</label>
+                    <select id="type" name="type" class="form-control">
+                        <option value="CHOICE">选择题</option>
+                        <option value="SPELL">拼写题</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">开始练习</button>
+            </form>
+        </div>
+
+        <div class="quick-links">
+            <h2>快捷入口</h2>
+            <div class="link-cards">
+                <a th:href="@{/practice/do(count=10, type='CHOICE')}" class="link-card">
+                    <h3>10题选择题</h3>
+                    <p>约3-5分钟</p>
+                </a>
+                <a th:href="@{/practice/do(count=20, type='CHOICE')}" class="link-card">
+                    <h3>20题选择题</h3>
+                    <p>约5-10分钟</p>
+                </a>
+                <a th:href="@{/practice/do(count=50, type='CHOICE')}" class="link-card">
+                    <h3>50题选择题</h3>
+                    <p>约15-20分钟</p>
+                </a>
+                <a th:href="@{/practice/review}" class="link-card">
+                    <h3>复习模式</h3>
+                    <p>针对待复习词汇</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

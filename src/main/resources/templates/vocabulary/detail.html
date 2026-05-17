@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${vocabulary.name} + ' - 托业学习系统'">词汇书详情</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1 th:text="${vocabulary.name}">词汇书名称</h1>
+                <p class="text-muted" th:text="${vocabulary.description}">描述</p>
+            </div>
+            <div class="actions">
+                <a th:href="@{/word/new?vocabId={id}(id=${vocabulary.id})}" class="btn btn-primary">添加单词</a>
+                <a th:href="@{/practice/do(vocabularyId=${vocabulary.id}, count=10)}" class="btn btn-outline">练习</a>
+                <a th:href="@{/vocabulary}" class="btn btn-outline">返回列表</a>
+            </div>
+        </div>
+
+        <div class="word-stats">
+            <span class="stat">单词数: <strong id="wordCount">0</strong></span>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索单词..." class="search-input">
+            <button onclick="loadWords()" class="btn">搜索</button>
+        </div>
+
+        <div id="wordList" class="word-list">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>英文</th>
+                        <th>中文</th>
+                        <th>音标</th>
+                        <th>词性</th>
+                        <th>难度</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="wordTableBody">
+                    <tr><td colspan="6">加载中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const vocabularyId = [[${vocabulary.id}]];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWords();
+        });
+
+        function loadWords() {
+            const keyword = document.getElementById('searchInput').value;
+            const url = keyword
+                ? '/word/api/search?keyword=' + encodeURIComponent(keyword)
+                : '/word/api/vocabulary/' + vocabularyId;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const words = data.data.filter(w => w.vocabularyId === vocabularyId);
+                        renderWords(words);
+                    }
+                });
+        }
+
+        function renderWords(words) {
+            document.getElementById('wordCount').textContent = words.length;
+            const tbody = document.getElementById('wordTableBody');
+
+            if (words.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">暂无单词，<a href="/word/new?vocabId=' + vocabularyId + '">添加第一个单词</a></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = words.map(w => `
+                <tr>
+                    <td><strong>${w.english}</strong></td>
+                    <td>${w.chinese}</td>
+                    <td class="text-muted">${w.phonetic || '-'}</td>
+                    <td>${w.partOfSpeech || '-'}</td>
+                    <td>${w.difficulty || 1}</td>
+                    <td class="actions">
+                        <button onclick="showWordDetail(${w.id})" class="btn btn-sm">详情</button>
+                        <a href="/word/${w.id}/edit" class="btn btn-sm btn-outline">编辑</a>
+                        <button onclick="deleteWord(${w.id})" class="btn btn-sm btn-danger">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showWordDetail(id) {
+            fetch('/word/api/' + id)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const w = data.data;
+                        alert(`${w.english}\n${w.phonetic || ''}\n${w.chinese}\n${w.exampleSentence || ''}\n词性: ${w.partOfSpeech || '-'}\n难度: ${w.difficulty || 1}`);
+                    }
+                });
+        }
+
+        function deleteWord(id) {
+            if (!confirm('确定要删除这个单词吗？')) return;
+            fetch('/word/api/' + id, { method: 'DELETE' })
+                .then(() => loadWords());
+        }
+    </script>
+</body>
+</html>

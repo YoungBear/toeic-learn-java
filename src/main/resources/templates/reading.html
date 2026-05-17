@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阅读模块 - 托业学习系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="coming-soon">
+            <div class="coming-soon-icon">📖</div>
+            <h1>阅读模块</h1>
+            <p class="subtitle">正在开发中...</p>
+            <p>计划于 v2.0 版本发布</p>
+
+            <div class="reserved-features">
+                <h2>预计功能</h2>
+                <ul>
+                    <li>短文阅读理解练习</li>
+                    <li>完形填空练习</li>
+                    <li>阅读速度训练</li>
+                    <li>阅读成绩统计</li>
+                </ul>
+            </div>
+
+            <div class="coming-soon-actions">
+                <a th:href="@{/}" class="btn btn-primary">返回首页</a>
+                <a th:href="@{/vocabulary}" class="btn btn-outline">词汇管理</a>
+                <a th:href="@{/practice}" class="btn btn-outline">词汇练习</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

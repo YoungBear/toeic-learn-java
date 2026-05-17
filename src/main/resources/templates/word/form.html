@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${word.id} ? '编辑单词' : '添加单词'">单词表单</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1 th:text="${word.id} ? '编辑单词' : '添加单词'">单词表单</h1>
+        </div>
+
+        <form th:action="@{/word}" th:object="${word}" method="post" class="form">
+            <input type="hidden" th:field="*{id}" />
+            <input type="hidden" th:field="*{vocabularyId}" />
+
+            <div class="form-group">
+                <label for="english">英文单词 <span class="required">*</span></label>
+                <input type="text" id="english" th:field="*{english}" required class="form-control" placeholder="例如：agreement">
+            </div>
+
+            <div class="form-group">
+                <label for="chinese">中文释义 <span class="required">*</span></label>
+                <input type="text" id="chinese" th:field="*{chinese}" required class="form-control" placeholder="例如：协议;合同">
+            </div>
+
+            <div class="form-group">
+                <label for="phonetic">音标</label>
+                <input type="text" id="phonetic" th:field="*{phonetic}" class="form-control" placeholder="例如：/əˈɡriːmənt/">
+            </div>
+
+            <div class="form-group">
+                <label for="partOfSpeech">词性</label>
+                <select id="partOfSpeech" th:field="*{partOfSpeech}" class="form-control">
+                    <option value="">请选择</option>
+                    <option value="noun">名词 (noun)</option>
+                    <option value="verb">动词 (verb)</option>
+                    <option value="adj">形容词 (adj)</option>
+                    <option value="adv">副词 (adv)</option>
+                    <option value="prep">介词 (prep)</option>
+                    <option value="conj">连词 (conj)</option>
+                    <option value="pron">代词 (pron)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="difficulty">难度 (1-5)</label>
+                <input type="number" id="difficulty" th:field="*{difficulty}" class="form-control" min="1" max="5" value="1">
+            </div>
+
+            <div class="form-group">
+                <label for="exampleSentence">例句</label>
+                <textarea id="exampleSentence" th:field="*{exampleSentence}" class="form-control" rows="2" placeholder="英文例句"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a th:href="@{/vocabulary/{id}(id=${word.vocabularyId})}" class="btn btn-outline">取消</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

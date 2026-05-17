@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导入导出 - 托业学习系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>导入导出</h1>
+            <a th:href="@{/vocabulary}" class="btn btn-outline">返回词汇管理</a>
+        </div>
+
+        <div class="import-export-grid">
+            <div class="card">
+                <h2>导出</h2>
+                <form id="exportForm" class="export-form">
+                    <div class="form-group">
+                        <label for="exportVocabId">选择词汇书</label>
+                        <select id="exportVocabId" name="vocabularyId" class="form-control">
+                            <option value="">全部词汇</option>
+                            <option th:each="vocab : ${vocabularies}"
+                                    th:value="${vocab.id}"
+                                    th:text="${vocab.name} + ' (' + vocab.wordCount + '词)'">词汇书</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exportKeyword">搜索条件 (可选)</label>
+                        <input type="text" id="exportKeyword" name="keyword" class="form-control" placeholder="按关键词过滤">
+                    </div>
+
+                    <div class="form-group">
+                        <label>导出格式</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="format" value="excel" checked> Excel (.xlsx)</label>
+                            <label><input type="radio" name="format" value="json"> JSON (.json)</label>
+                        </div>
+                    </div>
+
+                    <div class="export-actions">
+                        <button type="button" onclick="downloadTemplate()" class="btn btn-outline">下载模板</button>
+                        <button type="button" onclick="exportData()" class="btn btn-primary">导出</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>导入</h2>
+                <form id="importForm" class="import-form">
+                    <div class="form-group">
+                        <label for="importVocabId">导入到词汇书 <span class="required">*</span></label>
+                        <select id="importVocabId" name="vocabularyId" class="form-control" required>
+                            <option value="">请选择词汇书</option>
+                            <option th:each="vocab : ${vocabularies}"
+                                    th:value="${vocab.id}"
+                                    th:text="${vocab.name}">词汇书</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="importType">导入方式</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="importType" value="excel" checked> Excel 文件</label>
+                            <label><input type="radio" name="importType" value="json"> JSON 数据</label>
+                        </div>
+                    </div>
+
+                    <div id="excelUpload" class="form-group">
+                        <label for="importFile">选择 Excel 文件</label>
+                        <input type="file" id="importFile" accept=".xlsx,.xls" class="form-control">
+                    </div>
+
+                    <div id="jsonInput" class="form-group" style="display:none;">
+                        <label for="importJson">粘贴 JSON 数据</label>
+                        <textarea id="importJson" class="form-control" rows="5" placeholder='[{"english":"word","chinese":"释义"}]'></textarea>
+                    </div>
+
+                    <button type="button" onclick="importData()" class="btn btn-primary">导入</button>
+                </form>
+
+                <div id="importResult" class="import-result" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="card instructions">
+            <h2>使用说明</h2>
+            <div class="instruction-grid">
+                <div class="instruction-item">
+                    <h3>Excel 导入</h3>
+                    <ol>
+                        <li>先下载导入模板</li>
+                        <li>按格式填写词汇数据</li>
+                        <li>选择目标词汇书</li>
+                        <li>上传文件并导入</li>
+                    </ol>
+                </div>
+                <div class="instruction-item">
+                    <h3>Excel 模板格式</h3>
+                    <table class="mini-table">
+                        <tr><th>英文*</th><th>中文*</th><th>音标</th><th>例句</th><th>难度</th><th>词性</th></tr>
+                        <tr><td>example</td><td>例子</td><td>/ɪɡˈzæmpəl/</td><td>This is...</td><td>1</td><td>noun</td></tr>
+                    </table>
+                    <p class="text-muted">* 为必填字段</p>
+                </div>
+                <div class="instruction-item">
+                    <h3>JSON 格式</h3>
+                    <pre>[{"english":"word","chinese":"释义","phonetic":"音标","difficulty":1}]</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // 切换导入方式
+        document.querySelectorAll('input[name="importType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('excelUpload').style.display = this.value === 'excel' ? 'block' : 'none';
+                document.getElementById('jsonInput').style.display = this.value === 'json' ? 'block' : 'none';
+            });
+        });
+
+        function downloadTemplate() {
+            window.location.href = '/import-export/api/export/template';
+        }
+
+        function exportData() {
+            const vocabId = document.getElementById('exportVocabId').value;
+            const keyword = document.getElementById('exportKeyword').value;
+            const format = document.querySelector('input[name="format"]:checked').value;
+
+            let url = '/import-export/api/export/' + format;
+            const params = [];
+            if (vocabId) params.push('vocabularyId=' + vocabId);
+            if (keyword) params.push('keyword=' + encodeURIComponent(keyword));
+            if (params.length > 0) url += '?' + params.join('&');
+
+            window.location.href = url;
+        }
+
+        function importData() {
+            const vocabId = document.getElementById('importVocabId').value;
+            if (!vocabId) {
+                alert('请选择目标词汇书');
+                return;
+            }
+
+            const importType = document.querySelector('input[name="importType"]:checked').value;
+            const resultDiv = document.getElementById('importResult');
+
+            if (importType === 'excel') {
+                const file = document.getElementById('importFile').files[0];
+                if (!file) {
+                    alert('请选择要导入的文件');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('vocabularyId', vocabId);
+
+                fetch('/import-export/api/import/excel', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => showImportResult(data))
+                .catch(err => showImportResult({success: false, error: {message: err.message}}));
+            } else {
+                const json = document.getElementById('importJson').value.trim();
+                if (!json) {
+                    alert('请输入 JSON 数据');
+                    return;
+                }
+
+                fetch('/import-export/api/import/json?vocabularyId=' + vocabId, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: json
+                })
+                .then(r => r.json())
+                .then(data => showImportResult(data))
+                .catch(err => showImportResult({success: false, error: {message: err.message}}));
+            }
+        }
+
+        function showImportResult(data) {
+            const resultDiv = document.getElementById('importResult');
+            resultDiv.style.display = 'block';
+
+            if (data.success) {
+                const r = data.data;
+                resultDiv.className = 'import-result success';
+                resultDiv.innerHTML = `
+                    <h3>导入完成</h3>
+                    <p>总计: ${r.totalCount} | 成功: ${r.successCount} | 失败: ${r.failCount}</p>
+                    ${r.failRecords.length > 0 ? '<p class="text-danger">失败记录: ' + JSON.stringify(r.failRecords) + '</p>' : ''}
+                `;
+            } else {
+                resultDiv.className = 'import-result error';
+                resultDiv.innerHTML = '<h3>导入失败</h3><p>' + (data.error?.message || '未知错误') + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

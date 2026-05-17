@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词汇管理 - 托业学习系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>词汇书管理</h1>
+            <div class="actions">
+                <a th:href="@{/vocabulary/new}" class="btn btn-primary">新建词汇书</a>
+                <a th:href="@{/import-export}" class="btn btn-outline">导入导出</a>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索词汇书..." class="search-input">
+            <button onclick="searchVocabularies()" class="btn">搜索</button>
+        </div>
+
+        <div id="vocabularyList" class="vocabulary-list">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>单词数</th>
+                        <th>描述</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="vocab : ${vocabularies}">
+                        <td th:text="${vocab.name}">-</td>
+                        <td th:text="${vocab.wordCount}">0</td>
+                        <td th:text="${vocab.description}">-</td>
+                        <td class="actions">
+                            <a th:href="@{/vocabulary/{id}(id=${vocab.id})}" class="btn btn-sm">查看</a>
+                            <a th:href="@{/vocabulary/{id}/edit(id=${vocab.id})}" class="btn btn-sm btn-outline">编辑</a>
+                            <button th:onclick="'deleteVocabulary(' + ${vocab.id} + ')'" class="btn btn-sm btn-danger">删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.isEmpty(vocabularies)}" class="empty-state">
+                <p>暂无词汇书</p>
+                <a th:href="@{/vocabulary/new}" class="btn btn-primary">创建第一个词汇书</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function searchVocabularies() {
+            const keyword = document.getElementById('searchInput').value;
+            fetch('/vocabulary/api?keyword=' + encodeURIComponent(keyword))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        renderVocabularyList(data.data);
+                    }
+                });
+        }
+
+        function renderVocabularyList(vocabularies) {
+            const tbody = document.querySelector('#vocabularyList tbody');
+            if (vocabularies.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">没有找到匹配的词汇书</td></tr>';
+                return;
+            }
+            tbody.innerHTML = vocabularies.map(v => `
+                <tr>
+                    <td>${v.name}</td>
+                    <td>${v.wordCount}</td>
+                    <td>${v.description || '-'}</td>
+                    <td class="actions">
+                        <a href="/vocabulary/${v.id}" class="btn btn-sm">查看</a>
+                        <a href="/vocabulary/${v.id}/edit" class="btn btn-sm btn-outline">编辑</a>
+                        <button onclick="deleteVocabulary(${v.id})" class="btn btn-sm btn-danger">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteVocabulary(id) {
+            if (!confirm('确定要删除这个词汇书吗？所有相关单词也会被删除。')) return;
+            fetch('/vocabulary/api/' + id, { method: 'DELETE' })
+                .then(() => window.location.reload());
+        }
+    </script>
+</body>
+</html>

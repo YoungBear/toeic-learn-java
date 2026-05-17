@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词汇练习 - 托业学习系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container practice-container">
+        <div class="practice-header">
+            <h1>词汇练习</h1>
+            <div class="progress-info">
+                <span id="currentNum">0</span> / <span id="totalNum" th:text="${#lists.size(questions)}">0</span>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div id="questionCard" class="question-card" th:if="${#lists.size(questions) > 0}">
+            <div class="question-word" id="questionWord"></div>
+            <div class="question-phonetic" id="questionPhonetic"></div>
+
+            <div id="optionsContainer" class="options-container"></div>
+
+            <div id="spellContainer" class="spell-container" style="display:none;">
+                <input type="text" id="spellInput" class="form-control" placeholder="请输入英文单词">
+            </div>
+
+            <div class="question-actions">
+                <button id="submitBtn" onclick="submitAnswer()" class="btn btn-primary">确认</button>
+                <button onclick="exitPractice()" class="btn btn-outline">退出</button>
+            </div>
+
+            <div id="feedback" class="feedback" style="display:none;"></div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(questions)}" class="empty-state">
+            <h2>暂无练习题</h2>
+            <p>请先添加词汇或选择有单词的词汇书</p>
+            <a th:href="@{/vocabulary}" class="btn btn-primary">去添加词汇</a>
+        </div>
+
+        <div id="resultCard" class="result-card" style="display:none;">
+            <h2>练习完成！</h2>
+            <div class="result-stats">
+                <div class="result-stat">
+                    <div class="result-value" id="resultCorrect">0</div>
+                    <div class="result-label">正确</div>
+                </div>
+                <div class="result-stat">
+                    <div class="result-value" id="resultTotal">0</div>
+                    <div class="result-label">总数</div>
+                </div>
+                <div class="result-stat">
+                    <div class="result-value" id="resultRate">0%</div>
+                    <div class="result-label">正确率</div>
+                </div>
+            </div>
+            <div class="result-actions">
+                <button onclick="restartPractice()" class="btn btn-primary">再练一次</button>
+                <a th:href="@{/practice}" class="btn btn-outline">返回</a>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const questions = /*[[${questions}]]*/ [];
+        const type = /*[[${type}]]*/ 'CHOICE';
+        let currentIndex = 0;
+        let correctCount = 0;
+        let startTime = null;
+        let selectedAnswer = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (questions.length > 0) {
+                showQuestion(currentIndex);
+            }
+        });
+
+        function showQuestion(index) {
+            if (index >= questions.length) {
+                showResult();
+                return;
+            }
+
+            currentIndex = index;
+            startTime = Date.now();
+            selectedAnswer = null;
+
+            const q = questions[index];
+            document.getElementById('currentNum').textContent = index + 1;
+            document.getElementById('progressFill').style.width = ((index + 1) / questions.length * 100) + '%';
+
+            document.getElementById('questionWord').textContent = q.word.english;
+            document.getElementById('questionPhonetic').textContent = q.word.phonetic || '';
+
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = 'none';
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            const spellContainer = document.getElementById('spellContainer');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (q.type === 'CHOICE' || type === 'CHOICE') {
+                optionsContainer.style.display = 'block';
+                spellContainer.style.display = 'none';
+                optionsContainer.innerHTML = q.options.map((opt, i) =>
+                    '<button class="option-btn" onclick="selectOption(this, \'' + opt.replace(/'/g, "\\'") + '\')">' +
+                    String.fromCharCode(65 + i) + '. ' + opt + '</button>'
+                ).join('');
+            } else {
+                optionsContainer.style.display = 'none';
+                spellContainer.style.display = 'block';
+                document.getElementById('spellInput').value = '';
+                document.getElementById('spellInput').focus();
+            }
+
+            submitBtn.disabled = false;
+        }
+
+        function selectOption(btn, value) {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedAnswer = value;
+        }
+
+        function submitAnswer() {
+            const q = questions[currentIndex];
+            let answer = selectedAnswer;
+            let isCorrect = false;
+
+            if ((q.type === 'SPELL' || type === 'SPELL') && answer === undefined) {
+                answer = document.getElementById('spellInput').value.trim();
+                isCorrect = answer.toLowerCase() === q.word.english.toLowerCase();
+            } else {
+                isCorrect = answer === q.word.chinese;
+            }
+
+            const responseTime = Date.now() - startTime;
+
+            // 提交到后端
+            fetch('/practice/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    questionId: q.questionId,
+                    wordId: q.word.id,
+                    selectedAnswer: answer,
+                    isCorrect: isCorrect,
+                    responseTimeMs: responseTime
+                })
+            });
+
+            if (isCorrect) correctCount++;
+
+            // 显示反馈
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = 'block';
+            feedback.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+            feedback.innerHTML = isCorrect
+                ? '<span class="icon">✓</span> 正确！'
+                : '<span class="icon">✗</span> 错误！正确答案是: ' + q.word.chinese;
+
+            document.getElementById('submitBtn').textContent = '下一题';
+            document.getElementById('submitBtn').onclick = () => showQuestion(currentIndex + 1);
+        }
+
+        function showResult() {
+            document.getElementById('questionCard').style.display = 'none';
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('resultCorrect').textContent = correctCount;
+            document.getElementById('resultTotal').textContent = questions.length;
+            document.getElementById('resultRate').textContent = Math.round(correctCount / questions.length * 100) + '%';
+        }
+
+        function restartPractice() {
+            currentIndex = 0;
+            correctCount = 0;
+            showQuestion(0);
+            document.getElementById('questionCard').style.display = 'block';
+            document.getElementById('resultCard').style.display = 'none';
+        }
+
+        function exitPractice() {
+            if (confirm('确定要退出练习吗？')) {
+                window.location.href = '/practice';
+            }
+        }
+    </script>
+</body>
+</html>
