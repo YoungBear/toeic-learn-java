@@ -77,6 +77,7 @@ public class PracticeService {
         record.setWord(word);
         record.setIsCorrect(result.getIsCorrect());
         record.setResponseTimeMs(result.getResponseTimeMs());
+        record.setSelectedAnswer(result.getSelectedAnswer());
         practiceRecordRepository.save(record);
 
         // 更新学习进度
