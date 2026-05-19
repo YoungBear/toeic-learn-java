@@ -128,6 +128,71 @@ public class PracticeService {
                 .collect(Collectors.toList());
     }
 
+    public List<MistakeDTO> getMistakes(Long vocabularyId) {
+        List<PracticeRecord> wrongRecords;
+        if (vocabularyId != null) {
+            wrongRecords = practiceRecordRepository.findWrongAnswersByVocabularyId(vocabularyId);
+        } else {
+            wrongRecords = practiceRecordRepository.findAllWrongAnswers();
+        }
+
+        // 按单词聚合
+        Map<Long, List<PracticeRecord>> recordsByWord = wrongRecords.stream()
+                .collect(Collectors.groupingBy(r -> r.getWord().getId()));
+
+        List<MistakeDTO> mistakes = new ArrayList<>();
+        for (Map.Entry<Long, List<PracticeRecord>> entry : recordsByWord.entrySet()) {
+            Word word = entry.getValue().get(0).getWord();
+            PracticeRecord latestError = entry.getValue().get(0);
+            mistakes.add(MistakeDTO.builder()
+                    .wordId(word.getId())
+                    .english(word.getEnglish())
+                    .chinese(word.getChinese())
+                    .phonetic(word.getPhonetic())
+                    .exampleSentence(word.getExampleSentence())
+                    .wrongAnswer(latestError.getSelectedAnswer())
+                    .correctAnswer(word.getEnglish())
+                    .errorCount((long) entry.getValue().size())
+                    .lastErrorAt(latestError.getPracticedAt())
+                    .build());
+        }
+
+        mistakes.sort((a, b) -> Long.compare(b.getErrorCount(), a.getErrorCount()));
+        return mistakes;
+    }
+
+    public List<PracticeQuestionDTO> generateMistakeQuestions(int count) {
+        List<MistakeDTO> mistakes = getMistakes(null);
+        if (mistakes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 随机选取
+        Collections.shuffle(mistakes);
+        List<MistakeDTO> selected = mistakes.stream().limit(count).collect(Collectors.toList());
+
+        List<PracticeQuestionDTO> questions = new ArrayList<>();
+        for (MistakeDTO mistake : selected) {
+            Word word = wordRepository.findById(mistake.getWordId()).orElse(null);
+            if (word != null) {
+                questions.add(createQuestionFromWord(word));
+            }
+        }
+        return questions;
+    }
+
+    private PracticeQuestionDTO createQuestionFromWord(Word word) {
+        PracticeQuestionDTO question = PracticeQuestionDTO.builder()
+                .questionId(UUID.randomUUID().toString())
+                .type("CHOICE")
+                .word(toWordDTO(word))
+                .build();
+
+        List<String> options = generateOptions(word, wordRepository.findRandomAll(), 4);
+        question.setOptions(options);
+        return question;
+    }
+
     private List<String> generateOptions(Word correctWord, List<Word> allWords, int count) {
         List<String> options = new ArrayList<>();
         options.add(correctWord.getChinese());
