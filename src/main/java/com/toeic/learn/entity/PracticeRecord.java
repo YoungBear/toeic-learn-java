@@ -26,6 +26,9 @@ public class PracticeRecord {
     @Column(name = "is_correct", nullable = false)
     private Boolean isCorrect;
 
+    @Column(name = "selected_answer", length = 500)
+    private String selectedAnswer;
+
     @Column(name = "response_time_ms")
     private Integer responseTimeMs;
 
