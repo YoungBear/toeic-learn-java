@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-- **后端**: Java 17 + Spring Boot 3.2.5
+- **后端**: Java 21 + Spring Boot 3.2.5
 - **前端**: Thymeleaf (前后端不分离)
 - **数据库**: H2 (文件持久化)
 - **Excel处理**: Apache POI 5.2.5
