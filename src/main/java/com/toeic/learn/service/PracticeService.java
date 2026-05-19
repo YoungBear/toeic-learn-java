@@ -143,7 +143,9 @@ public class PracticeService {
         List<MistakeDTO> mistakes = new ArrayList<>();
         for (Map.Entry<Long, List<PracticeRecord>> entry : recordsByWord.entrySet()) {
             Word word = entry.getValue().get(0).getWord();
-            PracticeRecord latestError = entry.getValue().get(0);
+            PracticeRecord latestError = entry.getValue().stream()
+                    .max(Comparator.comparing(PracticeRecord::getPracticedAt))
+                    .orElse(entry.getValue().get(0));
             mistakes.add(MistakeDTO.builder()
                     .wordId(word.getId())
                     .english(word.getEnglish())
