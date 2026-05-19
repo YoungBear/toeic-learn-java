@@ -17,6 +17,6 @@ public class HomeController {
     public String index(Model model) {
         PracticeStatsDTO stats = practiceService.getStats();
         model.addAttribute("stats", stats);
-        return "index";
+        return "layout/main";
     }
 }
