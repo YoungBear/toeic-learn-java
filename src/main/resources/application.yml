@@ -20,7 +20,8 @@ spring:
     defer-datasource-initialization: true
   sql:
     init:
-      mode: always
+      mode: embedded
+      continue-on-error: true
   servlet:
     multipart:
       max-file-size: 10MB

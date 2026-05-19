@@ -24,6 +24,10 @@
 /nbdist/
 /.nb-gradle/
 
+# Database
+data/*.mv.db
+data/*.trace.db
+
 # ai-tools
 .claude
 .omc
