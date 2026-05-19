@@ -44,6 +44,9 @@ public class Word {
     @Column(name = "difficulty")
     private Integer difficulty = 1;
 
+    @Column(name = "favorited", nullable = false)
+    private Boolean favorited = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
