@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题本 - 托业学习系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>错题本</h1>
+            <a th:href="@{/practice}" class="btn btn-outline">返回练习中心</a>
+        </div>
+
+        <div class="filter-bar">
+            <select id="vocabularyFilter" class="form-select">
+                <option value="">全部词汇书</option>
+                <option th:each="vocab : ${vocabularies}"
+                        th:value="${vocab.id}"
+                        th:text="${vocab.name}"></option>
+            </select>
+            <button id="practiceBtn" class="btn btn-primary">练习错题</button>
+        </div>
+
+        <div id="mistakesList">
+            <div th:if="${#lists.isEmpty(mistakes)}" class="empty-state">
+                <h2>太棒了！</h2>
+                <p>目前没有错题记录</p>
+                <a th:href="@{/practice}" class="btn btn-primary">去练习</a>
+            </div>
+
+            <table th:if="${not #lists.isEmpty(mistakes)}" class="data-table">
+                <thead>
+                    <tr>
+                        <th>英文</th>
+                        <th>中文</th>
+                        <th>你的答案</th>
+                        <th>正确答案</th>
+                        <th>错误次数</th>
+                        <th>最近错误</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="mistake : ${mistakes}">
+                        <td><strong th:text="${mistake.english}">-</strong></td>
+                        <td th:text="${mistake.chinese}">-</td>
+                        <td class="text-error" th:text="${mistake.wrongAnswer}">-</td>
+                        <td class="text-success" th:text="${mistake.correctAnswer}">-</td>
+                        <td><span class="badge" th:text="${mistake.errorCount}">0</span></td>
+                        <td class="text-muted" th:text="${#temporals.format(mistake.lastErrorAt, 'yyyy-MM-dd HH:mm')}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Handle vocabulary filter change
+        document.getElementById('vocabularyFilter').addEventListener('change', function() {
+            const vocabularyId = this.value;
+            window.location.href = '/practice/mistakes' + (vocabularyId ? '?vocabularyId=' + vocabularyId : '');
+        });
+
+        // Handle practice button click
+        document.getElementById('practiceBtn').addEventListener('click', function() {
+            const vocabularyId = document.getElementById('vocabularyFilter').value;
+            window.location.href = '/practice/do?type=MISTAKE' + (vocabularyId ? '&vocabularyId=' + vocabularyId : '');
+        });
+    </script>
+</body>
+</html>
