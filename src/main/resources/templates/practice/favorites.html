@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>收藏单词 - 托业学习系统</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>我的收藏</h1>
+            <a th:href="@{/practice}" class="btn btn-outline">返回练习中心</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(favorites)}" class="empty-state">
+            <h2>暂无收藏</h2>
+            <p>在练习时点击星标收藏单词</p>
+            <a th:href="@{/practice}" class="btn btn-primary">去练习</a>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(favorites)}" class="word-list">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>收藏</th>
+                        <th>英文</th>
+                        <th>中文</th>
+                        <th>音标</th>
+                        <th>例句</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="word : ${favorites}" th:data-id="${word.id}">
+                        <td>
+                            <button class="favorite-btn favorited" th:data-id="${word.id}" onclick="toggleFavorite(this)">
+                                <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" width="20" height="20">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </button>
+                        </td>
+                        <td><strong th:text="${word.english}">-</strong></td>
+                        <td th:text="${word.chinese}">-</td>
+                        <td class="text-muted" th:text="${word.phonetic}">-</td>
+                        <td class="text-muted" th:text="${word.exampleSentence}">-</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="unfavoriteAndReload([[${word.id}]])">取消收藏</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function toggleFavorite(btn) {
+            const wordId = btn.getAttribute('data-id');
+            fetch('/word/api/' + wordId + '/favorite', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    btn.closest('tr').remove();
+                    const tbody = document.querySelector('tbody');
+                    if (tbody.children.length === 0) {
+                        location.reload();
+                    }
+                }
+            });
+        }
+
+        function unfavoriteAndReload(wordId) {
+            if (confirm('确定要取消收藏吗？')) {
+                fetch('/word/api/' + wordId + '/favorite', {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
