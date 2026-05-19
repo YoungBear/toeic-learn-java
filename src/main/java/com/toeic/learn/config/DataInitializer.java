@@ -24,9 +24,11 @@ public class DataInitializer implements ApplicationRunner {
         if (vocabularyCount == null || vocabularyCount == 0) {
             log.info("Database is empty, initializing with data.sql...");
             jdbcTemplate.execute("RUNSCRIPT FROM 'classpath:data.sql'");
+            log.info("Loading additional vocabulary data from data-extra.sql...");
+            jdbcTemplate.execute("RUNSCRIPT FROM 'classpath:data-extra.sql'");
             log.info("Data initialization completed.");
         } else {
-            log.info("Database already contains {} vocabularies, skipping data.sql", vocabularyCount);
+            log.info("Database already contains {} vocabularies, skipping data.sql and data-extra.sql", vocabularyCount);
         }
     }
 }
