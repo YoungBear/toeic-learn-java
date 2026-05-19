@@ -20,6 +20,12 @@ public class WordController {
 
     private final WordService wordService;
 
+    @GetMapping("/favorites")
+    public String showFavoritesPage(Model model) {
+        model.addAttribute("favorites", wordService.getFavorites());
+        return "practice/favorites";
+    }
+
     @GetMapping("/new")
     public String showCreateForm(@RequestParam Long vocabId, Model model) {
         WordDTO word = new WordDTO();
@@ -97,5 +103,38 @@ public class WordController {
     @ResponseBody
     public ResponseEntity<ApiResponse<List<WordDTO>>> apiSearch(@RequestParam String keyword) {
         return ResponseEntity.ok(ApiResponse.success(wordService.search(keyword)));
+    }
+
+    @PostMapping("/api/{id}/favorite")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<Boolean>> toggleFavorite(@PathVariable Long id) {
+        boolean favorited = wordService.toggleFavorite(id);
+        return ResponseEntity.ok(ApiResponse.success(favorited));
+    }
+
+    @DeleteMapping("/api/{id}/favorite")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<Boolean>> unfavorite(@PathVariable Long id) {
+        boolean favorited = wordService.toggleFavorite(id);
+        return ResponseEntity.ok(ApiResponse.success(favorited));
+    }
+
+    @GetMapping("/api/favorites")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<List<WordDTO>>> getFavorites(
+            @RequestParam(required = false) Long vocabularyId) {
+        List<WordDTO> favorites;
+        if (vocabularyId != null) {
+            favorites = wordService.getFavoritesByVocabulary(vocabularyId);
+        } else {
+            favorites = wordService.getFavorites();
+        }
+        return ResponseEntity.ok(ApiResponse.success(favorites));
+    }
+
+    @GetMapping("/api/{id}/favorite/status")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<Boolean>> isFavorited(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(wordService.isFavorited(id)));
     }
 }
