@@ -151,7 +151,7 @@ public class PracticeService {
                     .phonetic(word.getPhonetic())
                     .exampleSentence(word.getExampleSentence())
                     .wrongAnswer(latestError.getSelectedAnswer())
-                    .correctAnswer(word.getEnglish())
+                    .correctAnswer(word.getChinese())
                     .errorCount((long) entry.getValue().size())
                     .lastErrorAt(latestError.getPracticedAt())
                     .build());
