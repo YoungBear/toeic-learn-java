@@ -113,3 +113,6 @@ INSERT INTO word (vocabulary_id, english, chinese, phonetic, example_sentence, d
 -- 学习进度表初始化 (所有单词初始进度)
 INSERT INTO learning_progress (word_id, mastery_level, last_practiced_at, next_review_at)
 SELECT id, 0, NULL, CURRENT_TIMESTAMP FROM word WHERE id NOT IN (SELECT DISTINCT word_id FROM learning_progress);
+
+-- 为 practice_record 添加 selected_answer 字段（H2 兼容语法）
+ALTER TABLE practice_record ADD COLUMN selected_answer VARCHAR(500);
