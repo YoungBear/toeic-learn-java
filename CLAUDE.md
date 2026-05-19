@@ -109,7 +109,8 @@ templates/
 ├── practice/
 │   ├── index.html         # 练习中心
 │   ├── do.html            # 练习页面(含JS答题逻辑)
-│   └── review.html        # 复习页面
+│   ├── review.html        # 复习页面
+│   └── favorites.html     # 收藏页面
 └── import-export/
     └── index.html         # 导入导出页面
 ```
