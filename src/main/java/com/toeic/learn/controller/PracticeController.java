@@ -1,6 +1,7 @@
 package com.toeic.learn.controller;
 
 import com.toeic.learn.dto.ApiResponse;
+import com.toeic.learn.dto.MistakeDTO;
 import com.toeic.learn.dto.PracticeQuestionDTO;
 import com.toeic.learn.dto.PracticeResultDTO;
 import com.toeic.learn.dto.PracticeStatsDTO;
@@ -85,5 +86,26 @@ public class PracticeController {
     @ResponseBody
     public ResponseEntity<ApiResponse<PracticeStatsDTO>> apiGetStats() {
         return ResponseEntity.ok(ApiResponse.success(practiceService.getStats()));
+    }
+
+    @GetMapping("/mistakes")
+    public String mistakesPage(Model model) {
+        model.addAttribute("mistakes", practiceService.getMistakes(null));
+        model.addAttribute("vocabularies", vocabularyService.findAll());
+        return "practice/mistakes";
+    }
+
+    @GetMapping("/api/mistakes")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<List<MistakeDTO>>> getMistakes(
+            @RequestParam(required = false) Long vocabularyId) {
+        return ResponseEntity.ok(ApiResponse.success(practiceService.getMistakes(vocabularyId)));
+    }
+
+    @GetMapping("/api/mistakes/questions")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<List<PracticeQuestionDTO>>> getMistakeQuestions(
+            @RequestParam(defaultValue = "20") int count) {
+        return ResponseEntity.ok(ApiResponse.success(practiceService.generateMistakeQuestions(count)));
     }
 }
