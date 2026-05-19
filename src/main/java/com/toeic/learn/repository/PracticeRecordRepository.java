@@ -27,4 +27,13 @@ public interface PracticeRecordRepository extends JpaRepository<PracticeRecord, 
 
     @Query("SELECT pr FROM PracticeRecord pr WHERE pr.word.vocabulary.id = :vocabularyId ORDER BY pr.practicedAt DESC")
     List<PracticeRecord> findByVocabularyId(Long vocabularyId);
+
+    @Query("SELECT pr FROM PracticeRecord pr WHERE pr.isCorrect = false AND pr.word.vocabulary.id = :vocabularyId ORDER BY pr.practicedAt DESC")
+    List<PracticeRecord> findWrongAnswersByVocabularyId(Long vocabularyId);
+
+    @Query("SELECT pr FROM PracticeRecord pr WHERE pr.isCorrect = false ORDER BY pr.practicedAt DESC")
+    List<PracticeRecord> findAllWrongAnswers();
+
+    @Query("SELECT pr.word.id, COUNT(pr) as errorCount FROM PracticeRecord pr WHERE pr.isCorrect = false GROUP BY pr.word.id ORDER BY errorCount DESC")
+    List<Object[]> countErrorsByWordId();
 }
