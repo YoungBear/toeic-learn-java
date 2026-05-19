@@ -19,8 +19,13 @@
             <div class="progress-fill" id="progressFill"></div>
         </div>
 
-        <div id="questionCard" class="question-card" th:if="${#lists.size(questions) > 0}">
+        <div id="questionCard" class="question-card" th:if="${#lists.size(questions) > 0}" style="position:relative;">
             <div class="question-word" id="questionWord"></div>
+            <button id="favoriteBtn" class="favorite-btn" onclick="toggleFavorite()" style="background:none;border:none;cursor:pointer;position:absolute;top:10px;right:10px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+            </button>
             <div class="question-phonetic" id="questionPhonetic"></div>
 
             <div id="optionsContainer" class="options-container"></div>
@@ -73,6 +78,36 @@
         let correctCount = 0;
         let startTime = null;
         let selectedAnswer = null;
+        let currentWordId = null;
+
+        function updateFavoriteStatus(wordId) {
+            currentWordId = wordId;
+            fetch('/word/api/' + wordId + '/favorite/status')
+                .then(res => res.json())
+                .then(data => {
+                    updateFavoriteIcon(data.data);
+                });
+        }
+
+        function updateFavoriteIcon(isFavorited) {
+            const btn = document.getElementById('favoriteBtn');
+            if (isFavorited) {
+                btn.querySelector('svg').setAttribute('fill', 'currentColor');
+            } else {
+                btn.querySelector('svg').setAttribute('fill', 'none');
+            }
+        }
+
+        function toggleFavorite() {
+            if (!currentWordId) return;
+            fetch('/word/api/' + currentWordId + '/favorite', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                updateFavoriteIcon(data.data);
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             if (questions.length > 0) {
@@ -96,6 +131,7 @@
 
             document.getElementById('questionWord').textContent = q.word.english;
             document.getElementById('questionPhonetic').textContent = q.word.phonetic || '';
+            updateFavoriteStatus(q.word.id);
 
             const feedback = document.getElementById('feedback');
             feedback.style.display = 'none';
