@@ -23,6 +23,7 @@
 - [x] 搜索条件过滤导出
 - [x] 预置约90个托业核心词汇
 - [x] 单词收藏功能
+- [x] 错题本功能
 
 ### 预留接口
 - [ ] 听力模块 (计划 v2.0)
@@ -96,6 +97,11 @@ src/main/java/com/toeic/learn/
 - `POST /api/practice/submit` - 提交答案
 - `GET /api/practice/stats` - 获取统计
 
+### 错题本
+- `GET /practice/mistakes` - 错题本页面
+- `GET /api/practice/mistakes` - 获取错题列表
+- `GET /api/practice/mistakes/questions` - 生成错题练习题目
+
 ### 导入导出
 - `POST /api/import/excel` - Excel导入
 - `POST /api/import/json` - JSON导入
@@ -117,7 +123,7 @@ app:
 ## 数据说明
 
 - 数据库文件位置: `./data/toeic-learn.mv.db`
-- 预置数据包含3个词汇书，约90个核心词汇
+- 预置数据包含13个词汇书，约1100+个核心词汇
 - 初始数据在 `src/main/resources/data.sql`
 
 ## 扩展预留
