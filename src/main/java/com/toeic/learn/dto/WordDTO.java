@@ -36,4 +36,6 @@ public class WordDTO {
     private String partOfSpeech;
 
     private Integer difficulty = 1;
+
+    private Boolean favorited = false;
 }

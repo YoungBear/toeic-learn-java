@@ -77,6 +77,33 @@ public class WordService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public boolean toggleFavorite(Long id) {
+        Word word = wordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("单词不存在: " + id));
+        word.setFavorited(!word.getFavorited());
+        wordRepository.save(word);
+        return word.getFavorited();
+    }
+
+    public boolean isFavorited(Long id) {
+        Word word = wordRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("单词不存在: " + id));
+        return word.getFavorited();
+    }
+
+    public List<WordDTO> getFavorites() {
+        return wordRepository.findFavorites().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<WordDTO> getFavoritesByVocabulary(Long vocabularyId) {
+        return wordRepository.findFavoritesByVocabularyId(vocabularyId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     private void updateWordFromDTO(Word word, WordDTO dto) {
         word.setEnglish(dto.getEnglish());
         word.setChinese(dto.getChinese());
@@ -98,6 +125,7 @@ public class WordService {
         dto.setExampleSentence(word.getExampleSentence());
         dto.setPartOfSpeech(word.getPartOfSpeech());
         dto.setDifficulty(word.getDifficulty());
+        dto.setFavorited(word.getFavorited());
         return dto;
     }
 }
