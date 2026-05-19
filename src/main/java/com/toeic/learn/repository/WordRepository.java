@@ -26,4 +26,10 @@ public interface WordRepository extends JpaRepository<Word, Long> {
     List<Word> searchByKeyword(@Param("keyword") String keyword);
 
     int countByVocabularyId(Long vocabularyId);
+
+    @Query("SELECT w FROM Word w WHERE w.favorited = true ORDER BY w.createdAt DESC")
+    List<Word> findFavorites();
+
+    @Query("SELECT w FROM Word w WHERE w.vocabulary.id = :vocabId AND w.favorited = true ORDER BY w.createdAt DESC")
+    List<Word> findFavoritesByVocabularyId(@Param("vocabId") Long vocabId);
 }
